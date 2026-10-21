@@ -17,7 +17,7 @@ services:
       - key: DATABASE_URL
         value: sqlite:////tmp/codeecho.db
       - key: CORS_ORIGINS
-        value: "*"
+        value: '["*"]'
       - key: EXPLANATION_PROVIDER
         value: fallback
       - key: GEMINI_API_KEY
