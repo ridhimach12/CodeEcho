@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.api.v1.router import api_router
+from backend.app.database.session import init_db
+
+# Initialize database schema on startup
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
