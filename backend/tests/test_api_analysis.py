@@ -9,65 +9,69 @@ client = TestClient(app)
 def test_analysis_api_workflow():
     db = SessionLocal()
     try:
-        # Pre-seed a completed analysis in DB
-        repo = RepositoryDB(
-            url="https://github.com/pallets/click.git",
-            owner="pallets",
-            repo="click",
-        )
-        db.add(repo)
-        db.commit()
+        # Pre-seed or retrieve test repository in DB
+        repo = db.query(RepositoryDB).filter(RepositoryDB.url == "https://github.com/pallets/click.git").first()
+        if not repo:
+            repo = RepositoryDB(
+                url="https://github.com/pallets/click.git",
+                owner="pallets",
+                repo="click",
+            )
+            db.add(repo)
+            db.commit()
 
-        analysis = AnalysisRunDB(
-            id="api-test-run-101",
-            repository_id=repo.id,
-            status="COMPLETED",
-            commit_limit=25,
-            commits_mined=20,
-            changes_extracted=15,
-            clusters_discovered=1,
-            noise_points=2,
-            execution_time_seconds=2.5,
-        )
-        db.add(analysis)
-        db.commit()
+        analysis = db.query(AnalysisRunDB).filter(AnalysisRunDB.id == "api-test-run-101").first()
+        if not analysis:
+            analysis = AnalysisRunDB(
+                id="api-test-run-101",
+                repository_id=repo.id,
+                status="COMPLETED",
+                commit_limit=25,
+                commits_mined=20,
+                changes_extracted=15,
+                clusters_discovered=1,
+                noise_points=2,
+                execution_time_seconds=2.5,
+            )
+            db.add(analysis)
+            db.commit()
 
-        change = CodeChangeDB(
-            id="ch_api_1",
-            analysis_id=analysis.id,
-            commit_hash="abc1234",
-            file_path="src/click/core.py",
-            deleted_code="pass",
-            added_code="if x is None: return",
-            raw_diff="@@",
-            normalized_code="[+] if x is None: return",
-            added_lines_count=1,
-            deleted_lines_count=0,
-            detected_shifts_json='["added_none_guard"]',
-            timestamp=datetime.utcnow(),
-        )
-        db.add(change)
-        db.commit()
+            change = CodeChangeDB(
+                id="ch_api_1",
+                analysis_id=analysis.id,
+                commit_hash="abc1234",
+                file_path="src/click/core.py",
+                deleted_code="pass",
+                added_code="if x is None: return",
+                raw_diff="@@",
+                normalized_code="[+] if x is None: return",
+                added_lines_count=1,
+                deleted_lines_count=0,
+                detected_shifts_json='["added_none_guard"]',
+                timestamp=datetime.utcnow(),
+            )
+            db.add(change)
+            db.commit()
 
-        cluster = PatternClusterDB(
-            analysis_id=analysis.id,
-            cluster_number=0,
-            label_name="Candidate Pattern #1: added_none_guard",
-            is_noise=False,
-            member_count=1,
-            avg_similarity=1.0,
-            dominant_shifts_json='["added_none_guard"]',
-            affected_files_json='["src/click/core.py"]',
-            exemplar_change_id="ch_api_1",
-            exemplar_file="src/click/core.py",
-            exemplar_diff="@@",
-        )
-        db.add(cluster)
-        db.flush()
+            cluster = PatternClusterDB(
+                analysis_id=analysis.id,
+                cluster_number=0,
+                label_name="Candidate Pattern #1: added_none_guard",
+                is_noise=False,
+                member_count=1,
+                avg_similarity=1.0,
+                dominant_shifts_json='["added_none_guard"]',
+                affected_files_json='["src/click/core.py"]',
+                exemplar_change_id="ch_api_1",
+                exemplar_file="src/click/core.py",
+                exemplar_diff="@@",
+            )
+            db.add(cluster)
+            db.flush()
 
-        membership = ClusterMembershipDB(cluster_id=cluster.id, change_id=change.id)
-        db.add(membership)
-        db.commit()
+            membership = ClusterMembershipDB(cluster_id=cluster.id, change_id=change.id)
+            db.add(membership)
+            db.commit()
     finally:
         db.close()
 

@@ -26,17 +26,17 @@ CodeEcho mines Git commit history and code diffs across software repositories to
 - **Unsupervised Pattern Discovery (`ClusteringEngine`)**:
   - Density-based clustering (DBSCAN & HDBSCAN) over cosine distance matrices.
   - Isolates non-repeating changes into an explicit Noise partition (`cluster_id = -1`).
-  - **Medoid Exemplar Selection**: For every non-noise cluster, selects the change with highest intra-cluster similarity as the representative inspectable diff.
+  - **Medoid Exemplar Selection**: Selects the change with highest intra-cluster similarity as the representative inspectable diff.
 - **SQLite Persistence**:
   - Relational schema (`RepositoryDB`, `AnalysisRunDB`, `CommitDB`, `CodeChangeDB`, `PatternClusterDB`, `ClusterMembershipDB`).
   - Persistent across server restarts.
-- **REST API Endpoints**:
-  - `POST /api/v1/analyses`: Trigger background analysis on any public GitHub URL.
-  - `GET /api/v1/analyses`: List past analyses and summary metrics.
-  - `GET /api/v1/analyses/{id}`: Poll status (`PENDING`, `CLONING`, `EXTRACTING`, `CLUSTERING`, `COMPLETED`, `FAILED`).
-  - `GET /api/v1/analyses/{id}/clusters`: Retrieve candidate patterns with exemplar code diffs.
-  - `GET /api/v1/analyses/{id}/clusters/{cluster_id}/changes`: Retrieve member code changes.
-  - `POST /api/v1/extract-features`: Live interactive diff inspector.
+- **Full Interactive Web UI (React + Vite + Tailwind CSS)**:
+  - **Repo Ingestion**: Input form with commit limit slider, algorithm selector (DBSCAN/HDBSCAN), and presets (`pallets/click`, `psf/requests`).
+  - **Lifecycle Stepper**: Real-time polling indicator (`PENDING` $\rightarrow$ `CLONING` $\rightarrow$ `EXTRACTING` $\rightarrow$ `CLUSTERING` $\rightarrow$ `COMPLETED`).
+  - **Analysis Dashboard**: Responsive metric cards, cluster size distribution bars, and dominant AST shift tags.
+  - **Pattern Explorer**: Filter by noise points, sort by size/similarity, search by pattern shifts and affected files.
+  - **Pattern Detail Modal**: Unified diff viewer with syntax colors (`+` green, `-` red), exemplar diff tab, constituent changes list, and clickable links to GitHub commits.
+  - **Temporal Timeline**: Interactive chart visualizing when each pattern occurred across chronological commit timestamps.
 
 ---
 
@@ -75,7 +75,7 @@ python -m venv backend/venv --system-site-packages
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run pytest unit tests (33 passing tests)
+# Run pytest unit and API tests (33 passing tests)
 $env:PYTHONPATH="."
 pytest backend/tests -v
 
@@ -88,9 +88,10 @@ Swagger UI will be available at: [http://127.0.0.1:8000/api/v1/docs](http://127.
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run build   # Verified clean production build
+npm run dev     # Starts Vite dev server
 ```
-Vite dev server will be available at: [http://localhost:5173](http://localhost:5173)
+Application interface will be available at: [http://localhost:5173](http://localhost:5173)
 
 ---
 
@@ -98,8 +99,8 @@ Vite dev server will be available at: [http://localhost:5173](http://localhost:5
 
 - [x] **Milestone 1 (Day 1)**: Workspace setup, Git mining engine, AST/diff hunk parsing, normalization, FastAPI backend skeleton, React + Vite + Tailwind frontend scaffold, 11 passing automated tests.
 - [x] **Milestone 2 (Day 2)**: Python AST feature extractor (`PythonASTParser`), TF-IDF baseline vectorizer (`TFIDFEmbedder`), weak supervision heuristic pair generator (`WeakSupervisionGenerator`), 26 passing automated tests.
-- [x] **Milestone 3 (Day 3)**: Density clustering engine (`ClusteringEngine` with DBSCAN & HDBSCAN), medoid exemplar selection, representation fusion pipeline, SQLite database persistence with SQLAlchemy, end-to-end background analysis service, 33 passing automated tests, real-world validation on `pallets/click` (10 patterns discovered in 3.46s).
-- [ ] **Milestone 4 (Day 4)**: Frontend integration with real analysis APIs, interactive dashboard, cluster explorer with diff viewer, temporal recurrence timeline.
+- [x] **Milestone 3 (Day 3)**: Density clustering engine (`ClusteringEngine`), medoid exemplar selection, SQLite persistence with SQLAlchemy, analysis service, real-world validation on `pallets/click` (10 patterns discovered in 3.46s).
+- [x] **Milestone 4 (Day 4)**: Frontend integration with real analysis APIs, lifecycle polling banner, interactive dashboard, pattern explorer with unified diff viewer, temporal recurrence timeline, 33 passing automated tests.
 - [ ] **Milestone 5 (Day 5)**: Grounded root-cause explainer, deterministic fallback, NL repository query.
-- [ ] **Milestone 6 (Day 6)**: Multi-repo testing, Docker containerization, cloud deployment.
+- [ ] **Milestone 6 (Day 6)**: Multi-repo validation, Docker containerization, public cloud deployment.
 - [ ] **Milestone 7 (Day 7)**: Evaluation benchmarks (ablation study, silhouette, Davies-Bouldin), research paper draft.

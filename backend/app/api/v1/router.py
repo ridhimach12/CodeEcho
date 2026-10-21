@@ -220,7 +220,7 @@ def get_cluster_changes(analysis_id: str, cluster_id: int, db: Session = Depends
     memberships = db.query(ClusterMembershipDB).filter(ClusterMembershipDB.cluster_id == cluster_id).all()
     change_ids = [m.change_id for m in memberships]
 
-    changes = db.query(CodeChangeDB).filter(CodeChangeDB.id.in_(change_ids)).all()
+    changes = db.query(CodeChangeDB).filter(CodeChangeDB.id.in_(change_ids)).order_by(CodeChangeDB.timestamp.asc()).all()
     results = []
     for ch in changes:
         results.append(
