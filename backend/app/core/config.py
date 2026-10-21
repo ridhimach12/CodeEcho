@@ -14,18 +14,38 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     HOST: str = "127.0.0.1"
     PORT: int = 8000
-    CORS_ORIGINS: list[str] = [
+    CORS_ORIGINS: list[str] | str = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
 
-    @field_validator("CORS_ORIGINS", mode="before")
+    @field_validator("CORS_ORIGINS", mode="after")
     @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
         if isinstance(v, str):
-            return [i.strip() for i in v.split(",") if i.strip()]
+            v_stripped = v.strip()
+            if not v_stripped:
+                return []
+            if v_stripped == "*":
+                return ["*"]
+            if v_stripped.startswith("[") and v_stripped.endswith("]"):
+                try:
+                    import json
+                    parsed = json.loads(v_stripped)
+                    if isinstance(parsed, list):
+                        return [str(x).strip() for x in parsed if str(x).strip()]
+                except Exception:
+                    pass
+            return [x.strip() for x in v_stripped.split(",") if x.strip()]
+        elif isinstance(v, list):
+            cleaned = []
+            for item in v:
+                item_str = str(item).strip()
+                if item_str:
+                    cleaned.append(item_str)
+            return cleaned
         return v
     
     # Database

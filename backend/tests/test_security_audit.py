@@ -125,11 +125,46 @@ def test_cleanup_stale_analyses_in_database():
     session.close()
 
 def test_cors_origins_env_parsing():
-    # Test comma-separated string parsing
-    s = Settings(CORS_ORIGINS="http://localhost:5173,https://codeecho.vercel.app,http://127.0.0.1:3000")
-    assert len(s.CORS_ORIGINS) == 3
-    assert "https://codeecho.vercel.app" in s.CORS_ORIGINS
-    assert "http://localhost:5173" in s.CORS_ORIGINS
+    # 1. Comma-separated string parsing
+    s1 = Settings(CORS_ORIGINS="http://localhost:5173,https://codeecho.vercel.app,http://127.0.0.1:3000")
+    assert s1.CORS_ORIGINS == ["http://localhost:5173", "https://codeecho.vercel.app", "http://127.0.0.1:3000"]
+
+    # 2. Render wildcard string '*'
+    s2 = Settings(CORS_ORIGINS="*")
+    assert s2.CORS_ORIGINS == ["*"]
+
+    # 3. JSON wildcard '["*"]'
+    s3 = Settings(CORS_ORIGINS='["*"]')
+    assert s3.CORS_ORIGINS == ["*"]
+
+    # 4. JSON list string
+    s4 = Settings(CORS_ORIGINS='["https://example.com", "http://localhost:5173"]')
+    assert s4.CORS_ORIGINS == ["https://example.com", "http://localhost:5173"]
+
+    # 5. Comma-separated with extra whitespace and trailing commas
+    s5 = Settings(CORS_ORIGINS=" https://example.com , http://localhost:5173 , ")
+    assert s5.CORS_ORIGINS == ["https://example.com", "http://localhost:5173"]
+
+    # 6. Empty / blank string
+    s6 = Settings(CORS_ORIGINS="   ")
+    assert s6.CORS_ORIGINS == []
+
+    # 7. Native Python list
+    s7 = Settings(CORS_ORIGINS=["https://example.com", "http://localhost:5173"])
+    assert s7.CORS_ORIGINS == ["https://example.com", "http://localhost:5173"]
+
+def test_fastapi_app_loads_with_render_cors_env(monkeypatch):
+    monkeypatch.setenv("CORS_ORIGINS", "*")
+    from backend.app.core.config import Settings as FreshSettings
+    cfg = FreshSettings()
+    assert cfg.CORS_ORIGINS == ["*"]
+
+    from fastapi.testclient import TestClient
+    from backend.app.main import app
+    client = TestClient(app)
+    res = client.get("/api/v1/health")
+    assert res.status_code == 200
+    assert res.json()["status"] == "healthy"
 
 def test_no_dangerously_set_inner_html_in_frontend():
     frontend_src = PROJECT_ROOT / "frontend" / "src"
