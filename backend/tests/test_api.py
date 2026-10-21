@@ -38,3 +38,18 @@ def test_validate_repo_invalid():
     data = response.json()
     assert data["valid"] is False
     assert "supported" in data["message"].lower()
+
+def test_extract_features_endpoint():
+    response = client.post(
+        "/api/v1/extract-features",
+        json={
+            "deleted_code": "return val",
+            "added_code": "if val is None:\n    raise ValueError('null val')\nreturn val",
+        }
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert "added_none_guard" in data["detected_shifts"]
+    assert "added_explicit_raise" in data["detected_shifts"]
+    assert data["embedding_dimension"] > 0
+    assert len(data["vector_preview"]) == 5

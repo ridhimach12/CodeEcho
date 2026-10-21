@@ -1,5 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, Field
+from backend.app.feature_extraction.models import ASTDiffProfile
 
 class ValidateRepoRequest(BaseModel):
     repo_url: str
@@ -16,3 +17,15 @@ class HealthResponse(BaseModel):
     version: str
     environment: str
     timestamp: datetime
+
+class FeatureExtractRequest(BaseModel):
+    deleted_code: str = ""
+    added_code: str = ""
+
+class FeatureExtractResponse(BaseModel):
+    normalized_code: str
+    ast_profile: ASTDiffProfile
+    detected_shifts: list[str]
+    embedder_name: str
+    embedding_dimension: int
+    vector_preview: list[float]
