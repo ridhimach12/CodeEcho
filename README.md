@@ -27,6 +27,15 @@ CodeEcho mines Git commit history and code diffs across software repositories to
   - Density-based clustering (DBSCAN & HDBSCAN) over cosine distance matrices.
   - Isolates non-repeating changes into an explicit Noise partition (`cluster_id = -1`).
   - **Medoid Exemplar Selection**: Selects the change with highest intra-cluster similarity as the representative inspectable diff.
+- **Grounded AI Explanations & Root-Cause Hypotheses**:
+  - Synthesizes plain-language pattern explanations citing exact commit SHAs, file paths, and line deltas.
+  - Mitigates prompt injection by wrapping untrusted code diffs and commit messages in `<untrusted_diff>` XML encapsulation.
+  - **Deterministic Fallback**: If LLM API keys (`GEMINI_API_KEY`, `OPENAI_API_KEY`) are unconfigured, CodeEcho transparently generates structured explanations directly from the AST mutation profile via `codeecho-rule-engine-v1`.
+  - Distinguishes unverified hypotheses from facts (`HYPOTHESIS:`) and recommends concrete systemic remedies (e.g. typing, mypy, custom linter rule).
+- **Natural Language Repository Query Service (`NLQueryService`)**:
+  - Answers questions regarding pattern rankings, affected files, commit lists, temporal chronology, structural shifts, and fixes.
+  - Grounded citations: provides clickable citations to clusters, commits, and files.
+  - Scope containment: out-of-scope or speculative questions are safely rejected.
 - **SQLite Persistence**:
   - Relational schema (`RepositoryDB`, `AnalysisRunDB`, `CommitDB`, `CodeChangeDB`, `PatternClusterDB`, `ClusterMembershipDB`).
   - Persistent across server restarts.
@@ -75,7 +84,7 @@ python -m venv backend/venv --system-site-packages
 # Install dependencies
 pip install -r backend/requirements.txt
 
-# Run pytest unit and API tests (33 passing tests)
+# Run pytest unit and API tests (51 passing tests)
 $env:PYTHONPATH="."
 pytest backend/tests -v
 
@@ -101,6 +110,6 @@ Application interface will be available at: [http://localhost:5173](http://local
 - [x] **Milestone 2 (Day 2)**: Python AST feature extractor (`PythonASTParser`), TF-IDF baseline vectorizer (`TFIDFEmbedder`), weak supervision heuristic pair generator (`WeakSupervisionGenerator`), 26 passing automated tests.
 - [x] **Milestone 3 (Day 3)**: Density clustering engine (`ClusteringEngine`), medoid exemplar selection, SQLite persistence with SQLAlchemy, analysis service, real-world validation on `pallets/click` (10 patterns discovered in 3.46s).
 - [x] **Milestone 4 (Day 4)**: Frontend integration with real analysis APIs, lifecycle polling banner, interactive dashboard, pattern explorer with unified diff viewer, temporal recurrence timeline, 33 passing automated tests.
-- [ ] **Milestone 5 (Day 5)**: Grounded root-cause explainer, deterministic fallback, NL repository query.
+- [x] **Milestone 5 (Day 5)**: Grounded AI explanation engine with deterministic fallback (`codeecho-rule-engine-v1`), prompt injection mitigation, natural language repository query engine (`NLQueryService`), pattern detail modal explanation tab, repository Q&A interface, 51 passing automated tests.
 - [ ] **Milestone 6 (Day 6)**: Multi-repo validation, Docker containerization, public cloud deployment.
 - [ ] **Milestone 7 (Day 7)**: Evaluation benchmarks (ablation study, silhouette, Davies-Bouldin), research paper draft.

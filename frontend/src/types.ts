@@ -52,3 +52,37 @@ export interface CodeChangeDetail {
   enclosing_scope?: string | null
   timestamp: string
 }
+
+export interface GroundedEvidenceItem {
+  commit_hash: string
+  file_path: string
+  lines_summary: string
+  evidence_snippet: string
+}
+
+export interface ClusterExplanation {
+  cluster_id: number
+  pattern_title: string
+  plain_description: string
+  supporting_evidence: GroundedEvidenceItem[]
+  root_cause_hypothesis: string
+  suggested_systemic_fix: string
+  limitations_and_uncertainty: string
+  explanation_mode: 'llm_generated' | 'deterministic_fallback'
+  model_name: string
+  confidence_score: number
+}
+
+export interface NLQueryCitation {
+  type: 'cluster' | 'commit' | 'file'
+  identifier: string
+  description?: string
+}
+
+export interface NLQueryResponse {
+  question: string
+  answer: string
+  confidence: number
+  query_type: 'deterministic_db' | 'grounded_retrieval' | 'unsupported'
+  citations: NLQueryCitation[]
+}

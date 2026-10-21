@@ -4,6 +4,7 @@ import {
   Boxes,
   Calendar,
   FileSearch,
+  MessageSquareCode,
 } from 'lucide-react'
 import { HealthStatus, AnalysisSummary, ClusterDetail } from './types'
 import { Navbar } from './components/Navbar'
@@ -12,6 +13,7 @@ import { AnalysisLifecycleBanner } from './components/AnalysisLifecycleBanner'
 import { DashboardView } from './components/DashboardView'
 import { PatternExplorerView } from './components/PatternExplorerView'
 import { TemporalTimelineView } from './components/TemporalTimelineView'
+import { RepositoryQueryView } from './components/RepositoryQueryView'
 import { PatternDetailModal } from './components/PatternDetailModal'
 
 export default function App() {
@@ -22,7 +24,7 @@ export default function App() {
   const [clusters, setClusters] = useState<ClusterDetail[]>([])
   const [selectedCluster, setSelectedCluster] = useState<ClusterDetail | null>(null)
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'explorer' | 'timeline'>('dashboard')
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'explorer' | 'timeline' | 'qa'>('dashboard')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const pollingRef = useRef<number | null>(null)
@@ -197,6 +199,17 @@ export default function App() {
               <Calendar className="w-4 h-4" />
               <span>Temporal Recurrence</span>
             </button>
+            <button
+              onClick={() => setActiveTab('qa')}
+              className={`pb-3 font-medium flex items-center space-x-2 transition ${
+                activeTab === 'qa'
+                  ? 'border-b-2 border-indigo-500 text-indigo-400'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <MessageSquareCode className="w-4 h-4" />
+              <span>Repository Q&amp;A</span>
+            </button>
           </div>
         )}
 
@@ -220,6 +233,14 @@ export default function App() {
 
             {activeTab === 'timeline' && (
               <TemporalTimelineView
+                analysis={currentAnalysis}
+                clusters={clusters}
+                onSelectCluster={(c) => setSelectedCluster(c)}
+              />
+            )}
+
+            {activeTab === 'qa' && (
+              <RepositoryQueryView
                 analysis={currentAnalysis}
                 clusters={clusters}
                 onSelectCluster={(c) => setSelectedCluster(c)}

@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
@@ -24,11 +23,18 @@ from backend.app.schemas.analysis import (
     ClusterDetailResponse,
     CodeChangeDetailResponse,
 )
+from backend.app.explanations.models import (
+    ClusterExplanation,
+    NLQueryRequest,
+    NLQueryResponse,
+)
 from backend.app.repository_mining.validator import validate_github_url, RepoValidationError
 from backend.app.repository_mining.normalizer import normalize_code_diff
 from backend.app.feature_extraction.ast_parser import PythonASTParser
 from backend.app.embeddings.tfidf_embedder import TFIDFEmbedder
 from backend.app.services.analysis_service import AnalysisService
+from backend.app.explanations.service import ExplanationService
+from backend.app.services.query_service import NLQueryService
 
 # Singleton instance of baseline embedder
 default_embedder = TFIDFEmbedder(max_features=128)
@@ -109,7 +115,6 @@ def start_analysis(
             algorithm=payload.clustering_algorithm,
         )
 
-        # Dispatch background worker
         background_tasks.add_task(
             AnalysisService.execute_analysis,
             analysis_id=analysis.id,
@@ -241,3 +246,40 @@ def get_cluster_changes(analysis_id: str, cluster_id: int, db: Session = Depends
             )
         )
     return results
+
+@api_router.get("/analyses/{analysis_id}/clusters/{cluster_id}/explanation", response_model=ClusterExplanation)
+async def get_cluster_explanation(analysis_id: str, cluster_id: int, db: Session = Depends(get_db)):
+    """
+    Retrieves or generates an evidence-grounded explanation for a candidate pattern cluster.
+    Uses LLM provider if configured; falls back transparently to deterministic AST rule synthesis.
+    """
+    cluster = db.query(PatternClusterDB).filter(
+        PatternClusterDB.id == cluster_id,
+        PatternClusterDB.analysis_id == analysis_id,
+    ).first()
+    if not cluster:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cluster not found.")
+
+    memberships = db.query(ClusterMembershipDB).filter(ClusterMembershipDB.cluster_id == cluster_id).all()
+    change_ids = [m.change_id for m in memberships]
+    changes = db.query(CodeChangeDB).filter(CodeChangeDB.id.in_(change_ids)).order_by(CodeChangeDB.timestamp.asc()).all()
+
+    explanation = await ExplanationService.explain_cluster(cluster, changes)
+    return explanation
+
+@api_router.post("/analyses/{analysis_id}/query", response_model=NLQueryResponse)
+async def query_repository_analysis(
+    analysis_id: str,
+    payload: NLQueryRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Submits a natural language question regarding the repository analysis findings.
+    Answers are strictly grounded in persisted evidence and cluster memberships.
+    """
+    return await NLQueryService.answer_question(
+        analysis_id=analysis_id,
+        question=payload.query,
+        db=db,
+        cluster_id_hint=payload.cluster_id,
+    )
