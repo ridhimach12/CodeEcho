@@ -38,7 +38,7 @@ RUN mkdir -p /app/data /app/temp_clones
 
 # Default environment configuration
 ENV ENVIRONMENT=production \
-    PORT=8000 \
+    PORT=10000 \
     HOST=0.0.0.0 \
     DATABASE_URL=sqlite:////app/data/codeecho.db \
     SERVE_FRONTEND=true \
@@ -46,9 +46,9 @@ ENV ENVIRONMENT=production \
     TEMP_DIR_ROOT=/app/temp_clones \
     PYTHONPATH=/app
 
-EXPOSE 8000
+EXPOSE 10000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+    CMD curl -f http://localhost:${PORT:-10000}/api/v1/health || exit 1
 
-CMD ["python", "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec python -m uvicorn backend.app.main:app --host 0.0.0.0 --port ${PORT:-10000}"]

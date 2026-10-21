@@ -181,3 +181,42 @@ def test_no_dangerously_set_inner_html_in_frontend():
                     violations.append(str(file_path))
 
     assert len(violations) == 0, f"Found dangerous unescaped HTML injection points in: {violations}"
+
+def test_port_environment_variable_override(monkeypatch):
+    from backend.app.core.config import Settings as FreshSettings
+
+    # 1. Local default without PORT env
+    monkeypatch.delenv("PORT", raising=False)
+    cfg_local = FreshSettings()
+    assert cfg_local.PORT == 8000
+
+    # 2. Production Render PORT=10000
+    monkeypatch.setenv("PORT", "10000")
+    cfg_render = FreshSettings()
+    assert cfg_render.PORT == 10000
+
+    # 3. Custom PORT=8080
+    monkeypatch.setenv("PORT", "8080")
+    cfg_custom = FreshSettings()
+    assert cfg_custom.PORT == 8080
+
+def test_production_dockerfile_and_render_port_alignment():
+    dockerfile_path = PROJECT_ROOT / "Dockerfile"
+    assert dockerfile_path.exists(), "Dockerfile must exist"
+    dockerfile_content = dockerfile_path.read_text(encoding="utf-8")
+
+    # Ensure Dockerfile does not hardcode port 8000 in CMD
+    assert 'CMD ["python", "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]' not in dockerfile_content
+    # Ensure Dockerfile CMD dynamically expands ${PORT:-10000} via shell
+    assert "${PORT:-10000}" in dockerfile_content
+    assert "0.0.0.0" in dockerfile_content
+    # Ensure EXPOSE 10000
+    assert "EXPOSE 10000" in dockerfile_content
+
+    # Ensure render.yaml aligns with port 10000
+    render_yaml_path = PROJECT_ROOT / "render.yaml"
+    assert render_yaml_path.exists(), "render.yaml must exist"
+    render_yaml_content = render_yaml_path.read_text(encoding="utf-8")
+    assert "PORT" in render_yaml_content
+    assert "10000" in render_yaml_content
+
