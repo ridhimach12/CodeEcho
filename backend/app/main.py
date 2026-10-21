@@ -1,5 +1,7 @@
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from backend.app.core.config import settings
 from backend.app.api.v1.router import api_router
 from backend.app.database.session import init_db
@@ -27,11 +29,14 @@ app.add_middleware(
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
-@app.get("/")
-def root():
-    return {
-        "name": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "description": "CodeEcho API Backend",
-        "docs": f"{settings.API_V1_STR}/docs",
-    }
+if settings.SERVE_FRONTEND and Path(settings.FRONTEND_DIST_DIR).exists():
+    app.mount("/", StaticFiles(directory=settings.FRONTEND_DIST_DIR, html=True), name="static_frontend")
+else:
+    @app.get("/")
+    def root():
+        return {
+            "name": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "description": "CodeEcho API Backend",
+            "docs": f"{settings.API_V1_STR}/docs",
+        }

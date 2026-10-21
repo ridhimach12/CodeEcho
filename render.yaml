@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: codeecho
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SERVE_FRONTEND
+        value: "true"
+      - key: FRONTEND_DIST_DIR
+        value: /app/frontend/dist
+      - key: DATABASE_URL
+        value: sqlite:////app/data/codeecho.db
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: EXPLANATION_PROVIDER
+        value: fallback
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: codeecho-data
+      mountPath: /app/data
+      sizeGB: 1

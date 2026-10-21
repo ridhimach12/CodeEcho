@@ -2,7 +2,7 @@ import json
 import logging
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from backend.app.database.session import SessionLocal
 from backend.app.database.models import (
@@ -23,23 +23,55 @@ logger = logging.getLogger(__name__)
 
 class AnalysisService:
     @staticmethod
+    def cleanup_stale_analyses(db: Session, max_age_seconds: int = 300) -> int:
+        """
+        Identifies analyses stuck in non-terminal states (CLONING, EXTRACTING, CLUSTERING)
+        longer than max_age_seconds (e.g., due to server reboot or killed worker) and marks them FAILED.
+        """
+        now = datetime.now(timezone.utc)
+        stale_runs = db.query(AnalysisRunDB).filter(
+            AnalysisRunDB.status.in_(["PENDING", "CLONING", "EXTRACTING", "CLUSTERING"])
+        ).all()
+        cleaned = 0
+        for run in stale_runs:
+            if run.started_at:
+                run_started = run.started_at if run.started_at.tzinfo else run.started_at.replace(tzinfo=timezone.utc)
+                age = (now - run_started).total_seconds()
+            else:
+                age = max_age_seconds + 1
+
+            if age > max_age_seconds:
+                run.status = "FAILED"
+                run.error_message = "Analysis timed out or worker process was terminated unexpectedly."
+                run.completed_at = now
+                cleaned += 1
+        if cleaned > 0:
+            db.commit()
+        return cleaned
+
+    @staticmethod
     def create_analysis_record(db: Session, repo_url: str, commit_limit: int, algorithm: str = "dbscan") -> AnalysisRunDB:
         """
         Validates URL, creates or retrieves RepositoryDB, and initializes AnalysisRunDB.
+        Safe against concurrent duplicate repository creation race conditions.
         """
         validated = validate_github_url(repo_url)
 
         # Get or create repository record
         repo_record = db.query(RepositoryDB).filter(RepositoryDB.url == validated["normalized_url"]).first()
         if not repo_record:
-            repo_record = RepositoryDB(
-                url=validated["normalized_url"],
-                owner=validated["owner"],
-                repo=validated["repo"],
-            )
-            db.add(repo_record)
-            db.commit()
-            db.refresh(repo_record)
+            try:
+                repo_record = RepositoryDB(
+                    url=validated["normalized_url"],
+                    owner=validated["owner"],
+                    repo=validated["repo"],
+                )
+                db.add(repo_record)
+                db.commit()
+                db.refresh(repo_record)
+            except Exception:
+                db.rollback()
+                repo_record = db.query(RepositoryDB).filter(RepositoryDB.url == validated["normalized_url"]).first()
 
         analysis_id = str(uuid.uuid4())
         analysis = AnalysisRunDB(
@@ -48,7 +80,7 @@ class AnalysisService:
             status="PENDING",
             commit_limit=commit_limit,
             clustering_algorithm=algorithm,
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(timezone.utc),
         )
         db.add(analysis)
         db.commit()
@@ -67,6 +99,9 @@ class AnalysisService:
         start_time = time.time()
 
         try:
+            # Clean up any stale analyses from previous crashes
+            cls.cleanup_stale_analyses(db)
+
             analysis = db.query(AnalysisRunDB).filter(AnalysisRunDB.id == analysis_id).first()
             if not analysis:
                 return
@@ -81,6 +116,11 @@ class AnalysisService:
             db.commit()
             extractor = GitExtractor(clone_path)
             commits, changes = extractor.mine_all_changes(max_commits=commit_limit)
+
+            # Ensure change IDs are scoped to this analysis run to guarantee
+            # uniqueness across repeated analyses of the same repository
+            for ch in changes:
+                ch.change_id = f"{analysis_id[:8]}_{ch.change_id}"
 
             # Stage 3: Feature Representation & Clustering
             analysis.status = "CLUSTERING"
@@ -173,7 +213,7 @@ class AnalysisService:
             analysis.noise_points = noise_points_count
             analysis.execution_time_seconds = duration
             analysis.status = "COMPLETED"
-            analysis.completed_at = datetime.utcnow()
+            analysis.completed_at = datetime.now(timezone.utc)
             db.commit()
 
         except Exception as e:
@@ -183,7 +223,7 @@ class AnalysisService:
                 if analysis:
                     analysis.status = "FAILED"
                     analysis.error_message = str(e)
-                    analysis.completed_at = datetime.utcnow()
+                    analysis.completed_at = datetime.now(timezone.utc)
                     analysis.execution_time_seconds = round(time.time() - start_time, 2)
                     db.commit()
             except Exception:

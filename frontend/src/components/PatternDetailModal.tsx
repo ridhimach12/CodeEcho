@@ -15,6 +15,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { ClusterDetail, CodeChangeDetail, ClusterExplanation } from '../types'
+import { apiFetch } from '../api/client'
 
 interface PatternDetailModalProps {
   cluster: ClusterDetail
@@ -45,7 +46,7 @@ export const PatternDetailModal: React.FC<PatternDetailModalProps> = ({
   // Fetch constituent changes for this cluster
   useEffect(() => {
     setIsLoadingChanges(true)
-    fetch(`/api/v1/analyses/${analysisId}/clusters/${cluster.id}/changes`)
+    apiFetch(`/api/v1/analyses/${analysisId}/clusters/${cluster.id}/changes`)
       .then((res) => res.json())
       .then((data: CodeChangeDetail[]) => {
         setChanges(data)
@@ -64,7 +65,7 @@ export const PatternDetailModal: React.FC<PatternDetailModalProps> = ({
   useEffect(() => {
     setIsLoadingExplanation(true)
     setExplanationError(null)
-    fetch(`/api/v1/analyses/${analysisId}/clusters/${cluster.id}/explanation`)
+    apiFetch(`/api/v1/analyses/${analysisId}/clusters/${cluster.id}/explanation`)
       .then(async (res) => {
         if (!res.ok) {
           throw new Error(`Failed to load explanation (${res.status})`)

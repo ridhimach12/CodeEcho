@@ -7,6 +7,7 @@ import {
   MessageSquareCode,
 } from 'lucide-react'
 import { HealthStatus, AnalysisSummary, ClusterDetail } from './types'
+import { apiFetch } from './api/client'
 import { Navbar } from './components/Navbar'
 import { RepoIngestionForm } from './components/RepoIngestionForm'
 import { AnalysisLifecycleBanner } from './components/AnalysisLifecycleBanner'
@@ -31,7 +32,7 @@ export default function App() {
 
   // 1. Initial Health and Analyses List Fetch
   const fetchAnalysesList = useCallback(() => {
-    fetch('/api/v1/analyses')
+    apiFetch('/api/v1/analyses')
       .then((res) => res.json())
       .then((data: AnalysisSummary[]) => {
         setAnalyses(data)
@@ -44,7 +45,7 @@ export default function App() {
   }, [currentAnalysisId])
 
   useEffect(() => {
-    fetch('/api/v1/health')
+    apiFetch('/api/v1/health')
       .then((res) => res.json())
       .then((data) => setHealth(data))
       .catch(() => setHealth(null))
@@ -54,7 +55,7 @@ export default function App() {
 
   // 2. Fetch Clusters for Active Analysis
   const fetchClusters = useCallback((analysisId: string) => {
-    fetch(`/api/v1/analyses/${analysisId}/clusters`)
+    apiFetch(`/api/v1/analyses/${analysisId}/clusters`)
       .then((res) => res.json())
       .then((data: ClusterDetail[]) => setClusters(data))
       .catch((err) => console.error('Failed to fetch clusters:', err))
@@ -65,7 +66,7 @@ export default function App() {
     if (!currentAnalysisId) return
 
     const pollStatus = () => {
-      fetch(`/api/v1/analyses/${currentAnalysisId}`)
+      apiFetch(`/api/v1/analyses/${currentAnalysisId}`)
         .then((res) => res.json())
         .then((data: AnalysisSummary) => {
           setCurrentAnalysis(data)
@@ -109,7 +110,7 @@ export default function App() {
   const handleStartAnalysis = async (repoUrl: string, commitLimit: number, algorithm: string) => {
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/v1/analyses', {
+      const res = await apiFetch('/api/v1/analyses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -128,4 +128,5 @@ def test_post_nl_query_out_of_scope(setup_api_data):
     assert response.status_code == 200
     data = response.json()
     assert data["query_type"] == "unsupported"
+    assert data["confidence"] == 0.0
     assert "outside the scope" in data["answer"]

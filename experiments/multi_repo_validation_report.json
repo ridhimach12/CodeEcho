@@ -1,0 +1,217 @@
+[
+  {
+    "label": "Pallets Click (CLI Framework)",
+    "repo_url": "https://github.com/pallets/click",
+    "analysis_date": "2026-10-21T10:51:30.995991+00:00",
+    "commit_limit": 20,
+    "status": "COMPLETED",
+    "commits_mined": 20,
+    "changes_extracted": 96,
+    "clusters_discovered": 12,
+    "noise_points": 22,
+    "execution_time_seconds": 2.96,
+    "error_message": null,
+    "sample_clusters": [
+      {
+        "cluster_number": 1,
+        "label": "Candidate Pattern #1: added_function_calls, modified_function_definition, added_assertion_checks",
+        "size": 11,
+        "avg_similarity": 0.594,
+        "dominant_shifts": [
+          "added_function_calls",
+          "modified_function_definition",
+          "added_assertion_checks"
+        ],
+        "exemplar_file": "tests/test_arguments.py"
+      },
+      {
+        "cluster_number": 2,
+        "label": "Candidate Pattern #2: modified_function_definition",
+        "size": 10,
+        "avg_similarity": 0.514,
+        "dominant_shifts": [
+          "modified_function_definition"
+        ],
+        "exemplar_file": "src/click/types.py"
+      },
+      {
+        "cluster_number": 3,
+        "label": "Candidate Pattern #3: modified_function_definition, added_function_calls, added_assertion_checks",
+        "size": 10,
+        "avg_similarity": 0.735,
+        "dominant_shifts": [
+          "modified_function_definition",
+          "added_function_calls",
+          "added_assertion_checks"
+        ],
+        "exemplar_file": "tests/test_arguments.py"
+      }
+    ],
+    "explanation_verified": true,
+    "query_verified": true,
+    "sample_explanation": {
+      "pattern_title": "Recurrent Interface Refactoring & Call Adaptation Pattern",
+      "mode": "deterministic_fallback",
+      "model": "codeecho-rule-engine-v1",
+      "confidence": 0.75,
+      "hypothesis": "HYPOTHESIS: Internal API evolution or signature modifications where interface changes necessitated coordinated adaptatio...",
+      "systemic_fix": "Adhere to strict API versioning with keyword-only arguments and deprecation cycles to avoid cascading signature refactor..."
+    },
+    "sample_query_answer": {
+      "question": "Which candidate anti-pattern recurred most frequently?",
+      "answer": "Candidate Pattern #4 ('Candidate Pattern #4: Syntactic Pattern') recurred most frequently, encompassing 15 code changes across 6 files. The average intra-cluster similarity is ~72%.",
+      "query_type": "deterministic_db",
+      "confidence": 0.95,
+      "citations_count": 2
+    }
+  },
+  {
+    "label": "PSF Requests (HTTP Client)",
+    "repo_url": "https://github.com/psf/requests",
+    "analysis_date": "2026-10-21T10:51:34.157556+00:00",
+    "commit_limit": 20,
+    "status": "COMPLETED",
+    "commits_mined": 20,
+    "changes_extracted": 36,
+    "clusters_discovered": 3,
+    "noise_points": 12,
+    "execution_time_seconds": 4.61,
+    "error_message": null,
+    "sample_clusters": [
+      {
+        "cluster_number": 1,
+        "label": "Candidate Pattern #1: added_conditional_branching, added_function_calls",
+        "size": 2,
+        "avg_similarity": 0.839,
+        "dominant_shifts": [
+          "added_conditional_branching",
+          "added_function_calls"
+        ],
+        "exemplar_file": "setup.py"
+      },
+      {
+        "cluster_number": 2,
+        "label": "Candidate Pattern #2: modified_function_definition, added_function_calls, added_return_statement",
+        "size": 20,
+        "avg_similarity": 0.553,
+        "dominant_shifts": [
+          "modified_function_definition",
+          "added_function_calls",
+          "added_return_statement"
+        ],
+        "exemplar_file": "src/requests/models.py"
+      },
+      {
+        "cluster_number": 3,
+        "label": "Candidate Pattern #3: added_exception_handling, added_function_calls, added_return_statement",
+        "size": 2,
+        "avg_similarity": 0.875,
+        "dominant_shifts": [
+          "added_exception_handling",
+          "added_function_calls",
+          "added_return_statement"
+        ],
+        "exemplar_file": "tests/__init__.py"
+      }
+    ],
+    "explanation_verified": true,
+    "query_verified": true,
+    "sample_explanation": {
+      "pattern_title": "Recurrent Interface Refactoring & Call Adaptation Pattern",
+      "mode": "deterministic_fallback",
+      "model": "codeecho-rule-engine-v1",
+      "confidence": 0.75,
+      "hypothesis": "HYPOTHESIS: Internal API evolution or signature modifications where interface changes necessitated coordinated adaptatio...",
+      "systemic_fix": "Adhere to strict API versioning with keyword-only arguments and deprecation cycles to avoid cascading signature refactor..."
+    },
+    "sample_query_answer": {
+      "question": "Which candidate anti-pattern recurred most frequently?",
+      "answer": "Candidate Pattern #2 ('Candidate Pattern #2: modified_function_definition, added_function_calls, added_return_statement') recurred most frequently, encompassing 20 code changes across 20 files. The average intra-cluster similarity is ~55%.",
+      "query_type": "deterministic_db",
+      "confidence": 0.95,
+      "citations_count": 2
+    }
+  },
+  {
+    "label": "Bottle (Micro Web Framework)",
+    "repo_url": "https://github.com/bottlepy/bottle",
+    "analysis_date": "2026-10-21T10:51:38.862640+00:00",
+    "commit_limit": 20,
+    "status": "COMPLETED",
+    "commits_mined": 20,
+    "changes_extracted": 72,
+    "clusters_discovered": 8,
+    "noise_points": 21,
+    "execution_time_seconds": 4.26,
+    "error_message": null,
+    "sample_clusters": [
+      {
+        "cluster_number": 1,
+        "label": "Candidate Pattern #1: simplified_conditional_branching, added_function_calls",
+        "size": 2,
+        "avg_similarity": 0.949,
+        "dominant_shifts": [
+          "simplified_conditional_branching",
+          "added_function_calls"
+        ],
+        "exemplar_file": "bottle.py"
+      },
+      {
+        "cluster_number": 2,
+        "label": "Candidate Pattern #2: added_function_calls, modified_function_definition, added_return_statement",
+        "size": 32,
+        "avg_similarity": 0.511,
+        "dominant_shifts": [
+          "added_function_calls",
+          "modified_function_definition",
+          "added_return_statement"
+        ],
+        "exemplar_file": "test/test_wsgi.py"
+      },
+      {
+        "cluster_number": 3,
+        "label": "Candidate Pattern #3: added_function_calls",
+        "size": 7,
+        "avg_similarity": 0.477,
+        "dominant_shifts": [
+          "added_function_calls"
+        ],
+        "exemplar_file": "bottle.py"
+      }
+    ],
+    "explanation_verified": true,
+    "query_verified": true,
+    "sample_explanation": {
+      "pattern_title": "Recurrent Interface Refactoring & Call Adaptation Pattern",
+      "mode": "deterministic_fallback",
+      "model": "codeecho-rule-engine-v1",
+      "confidence": 0.75,
+      "hypothesis": "HYPOTHESIS: Internal API evolution or signature modifications where interface changes necessitated coordinated adaptatio...",
+      "systemic_fix": "Adhere to strict API versioning with keyword-only arguments and deprecation cycles to avoid cascading signature refactor..."
+    },
+    "sample_query_answer": {
+      "question": "Which candidate anti-pattern recurred most frequently?",
+      "answer": "Candidate Pattern #2 ('Candidate Pattern #2: added_function_calls, modified_function_definition, added_return_statement') recurred most frequently, encompassing 32 code changes across 26 files. The average intra-cluster similarity is ~51%.",
+      "query_type": "deterministic_db",
+      "confidence": 0.95,
+      "citations_count": 2
+    }
+  },
+  {
+    "label": "Edge Case: Zero Python Changes",
+    "repo_url": "synthetic://docs_only",
+    "analysis_date": "2026-10-21T10:51:44.497009+00:00",
+    "commit_limit": 10,
+    "status": "COMPLETED",
+    "commits_mined": 4,
+    "changes_extracted": 0,
+    "clusters_discovered": 0,
+    "noise_points": 0,
+    "execution_time_seconds": 0.05,
+    "error_message": null,
+    "sample_clusters": [],
+    "explanation_verified": true,
+    "query_verified": true,
+    "notes": "Handled safely without error. Zero python changes yielded zero clusters and zero noise points."
+  }
+]

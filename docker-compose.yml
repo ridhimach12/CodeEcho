@@ -1,0 +1,27 @@
+services:
+  codeecho:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codeecho-app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - PORT=8000
+      - HOST=0.0.0.0
+      - DATABASE_URL=sqlite:////app/data/codeecho.db
+      - SERVE_FRONTEND=true
+      - FRONTEND_DIST_DIR=/app/frontend/dist
+      - CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000,http://localhost:5173
+      # Optional LLM API Keys (Falls back to deterministic rule engine if unset)
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - EXPLANATION_PROVIDER=${EXPLANATION_PROVIDER:-fallback}
+    volumes:
+      - codeecho-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  codeecho-data:
+    name: codeecho-data

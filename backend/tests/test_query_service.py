@@ -141,7 +141,7 @@ def test_query_out_of_scope(query_test_db):
     ))
     assert res.query_type == "unsupported"
     assert "outside the scope" in res.answer
-    assert res.confidence == 1.0
+    assert res.confidence == 0.0
 
 def test_query_ranking_most_frequent(query_test_db):
     res = asyncio.run(NLQueryService.answer_question(

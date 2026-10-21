@@ -30,6 +30,11 @@ class NLQueryService:
         Answers natural language questions strictly grounded in persisted repository evidence.
         Prefers deterministic database queries for counting, ranking, file listing,
         and temporal chronology; falls back to LLM or explicit out-of-scope messaging.
+
+        Confidence Score Semantics:
+          - 0.0: Unsupported query, zero repository evidence, or out-of-scope question.
+          - 0.5 - 0.7: Partial repository evidence or heuristic match.
+          - 0.8 - 0.95: Grounded deterministic database records, exact commit SHAs, and AST mutations.
         """
         analysis = db.query(AnalysisRunDB).filter(AnalysisRunDB.id == analysis_id).first()
         if not analysis:
@@ -51,7 +56,7 @@ class NLQueryService:
                     "CodeEcho only answers questions grounded in mined Git commits, candidate anti-patterns, "
                     "affected files, and structural code changes."
                 ),
-                confidence=1.0,
+                confidence=0.0,
                 query_type="unsupported",
             )
 
@@ -286,6 +291,6 @@ class NLQueryService:
                 "I cannot determine an answer to this question from the available repository evidence. "
                 "You can query about pattern rankings, affected files, commits, chronology, or systemic fixes."
             ),
-            confidence=0.70,
+            confidence=0.0,
             query_type="unsupported",
         )

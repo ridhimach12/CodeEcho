@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -19,9 +20,20 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
     
     # Database
     DATABASE_URL: str = "sqlite:///./codeecho.db"
+    
+    # Frontend Serving (Production Container)
+    SERVE_FRONTEND: bool = False
+    FRONTEND_DIST_DIR: str = str(Path("./frontend/dist").resolve())
     
     # Mining Limits & Constraints
     MAX_COMMITS_DEFAULT: int = 100

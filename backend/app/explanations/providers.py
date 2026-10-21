@@ -27,6 +27,18 @@ CRITICAL SECURITY AND GROUNDING INSTRUCTIONS:
 """
 
 class BaseLLMProvider(ABC):
+    def build_user_prompt(self, cluster_info: dict) -> str:
+        return (
+            f"Analyze this candidate pattern cluster:\n"
+            f"Cluster ID: {cluster_info.get('cluster_id')}\n"
+            f"Cluster Label: {cluster_info.get('label_name')}\n"
+            f"Member Count: {cluster_info.get('size')}\n"
+            f"Dominant AST Shifts: {', '.join(cluster_info.get('dominant_shifts', []))}\n"
+            f"Affected Files: {', '.join(cluster_info.get('affected_files', []))}\n"
+            f"Exemplar File: {cluster_info.get('exemplar_file')}\n"
+            f"<untrusted_diff>\n{cluster_info.get('exemplar_diff', '')[:3000]}\n</untrusted_diff>\n"
+        )
+
     @abstractmethod
     async def generate_explanation(self, cluster_info: dict) -> ClusterExplanation | None:
         pass
@@ -46,16 +58,7 @@ class GeminiProvider(BaseLLMProvider):
         if not self.api_key:
             return None
 
-        user_content = (
-            f"Analyze this candidate pattern cluster:\n"
-            f"Cluster ID: {cluster_info.get('cluster_id')}\n"
-            f"Cluster Label: {cluster_info.get('label_name')}\n"
-            f"Member Count: {cluster_info.get('size')}\n"
-            f"Dominant AST Shifts: {', '.join(cluster_info.get('dominant_shifts', []))}\n"
-            f"Affected Files: {', '.join(cluster_info.get('affected_files', []))}\n"
-            f"Exemplar File: {cluster_info.get('exemplar_file')}\n"
-            f"<untrusted_diff>\n{cluster_info.get('exemplar_diff', '')[:3000]}\n</untrusted_diff>\n"
-        )
+        user_content = self.build_user_prompt(cluster_info)
 
         payload = {
             "contents": [
@@ -142,16 +145,7 @@ class OpenAIProvider(BaseLLMProvider):
         if not self.api_key:
             return None
 
-        user_content = (
-            f"Analyze this candidate pattern cluster:\n"
-            f"Cluster ID: {cluster_info.get('cluster_id')}\n"
-            f"Cluster Label: {cluster_info.get('label_name')}\n"
-            f"Member Count: {cluster_info.get('size')}\n"
-            f"Dominant AST Shifts: {', '.join(cluster_info.get('dominant_shifts', []))}\n"
-            f"Affected Files: {', '.join(cluster_info.get('affected_files', []))}\n"
-            f"Exemplar File: {cluster_info.get('exemplar_file')}\n"
-            f"<untrusted_diff>\n{cluster_info.get('exemplar_diff', '')[:3000]}\n</untrusted_diff>\n"
-        )
+        user_content = self.build_user_prompt(cluster_info)
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = {

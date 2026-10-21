@@ -11,6 +11,7 @@ import {
   History,
 } from 'lucide-react'
 import { AnalysisSummary, ClusterDetail, NLQueryResponse, NLQueryCitation } from '../types'
+import { apiFetch } from '../api/client'
 
 interface RepositoryQueryViewProps {
   analysis: AnalysisSummary
@@ -57,7 +58,7 @@ export const RepositoryQueryView: React.FC<RepositoryQueryViewProps> = ({
         payload.cluster_id = Number(selectedClusterHint)
       }
 
-      const res = await fetch(`/api/v1/analyses/${analysis.analysis_id}/query`, {
+      const res = await apiFetch(`/api/v1/analyses/${analysis.analysis_id}/query`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
